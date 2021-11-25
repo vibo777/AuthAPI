@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+// express object 
 const app = express();
 
 // middleware application 
@@ -24,9 +25,10 @@ const userSchema = new mongoose.Schema({
     timestamps:true
 });
 
+// model for the user
 const userModel = new mongoose.model("users",userSchema); 
 
-// to register a user
+// end point to register a user
 
 app.post("/register",(req,res)=>{
     
