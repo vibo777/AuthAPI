@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bcryptjs = require('bcryptjs');
-
+const jwt = require('jsonwebtoken');
 
 // express object 
 const app = express();
@@ -66,6 +66,56 @@ app.post("/register",(req,res)=>{
     })
 
 })
+
+
+// for login functionality 
+// 1. First check if username is correct 
+// 2. Whatever username & password pass in body it will store in userCred  
+
+app.post("/login",(req,res)=>{
+
+    // Whatever username & password pass in body it will store in userCred 
+    let userCred = req.body;
+
+    // we try to find person with that username 
+    userModel.findOne({username:userCred.username})
+    .then((user)=>{
+        // if we found username, if block will executed 
+        if(user!=null){
+
+            // we are checking the previous encrypted password with new encrypted password using bcryptjs.compare() method  
+            bcryptjs.compare(userCred.password,user.password,(err,status)=>{
+                if(status === true){
+        
+                   jwt.sign(userCred,"secretkey",(err,token)=>{
+                        if(err===null){
+                            res.send({message:"welcome user",token:token});
+                        }
+                   })   
+                }
+                else{
+                    res.send({message:"Password don't match"})
+                }    
+            })
+
+        }  
+        // if we don't found username else block executed 
+        else{
+            res.send({message:"User is not found"});
+        }     
+    })
+    .catch((err)=>{
+        console.log(err);
+        res.send({message:"Some problem"});
+    })
+})
+
+app.get("/dummy",(req,res)=>{
+
+    res.send({message:"Some really important code"});
+
+})
+
 
 
 app.listen(3000);
