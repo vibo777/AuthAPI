@@ -1,0 +1,238 @@
+Authentication & authorization - generalize terms
+authentication is the process of verifying who a user is, while authorization is the process of verifying what they have access to
+
+Authentication : Technical term 
+Authentication is a process in which the credentials provided are compared
+to those on file in a database of authorized users' information on a local
+operating system. 
+
+Authorization : Technical term 
+what you are authorized to use,how much permission user's have given to use & it depends on his role.
+for eg : Admin have permission to monitor user's activity.  
+
+Encryption :
+encryption is the process of encoding information. This process converts
+the original representation of the information, known as plaintext, into an alternative form known as ciphertext. 
+
+Important Concepts: 
+ 
+A] What is middleware ? 
+Middleware : Functionality that seats between the request from it is coming & from where the request is going, between the end-point & client. 
+
+B] Which middleware which we used & what is purpose of it?
+app.use is function that helps you to apply a middleware between all requests. 
+express.json is functionality & the middleware function.
+
+// this is code for middleware application 
+app.use(express.json());
+express.json() - whenever the request comes, it extracts the body data from the request & converts it into a Js object & again creates the
+new property called as body in the request object & makes the data available for further use of us in endpoints.   
+
+
+*** Steps for creating API *** 
+ 
+1. npm init - This utility will walk you through creating a package.json file. 
+
+2. Description - API for authentication & authorization.
+
+3. Author - Vaibhav Bunde. 
+   Finish with vs code setup. 
+
+4. Let's open the compass & create the Database.   
+
+5. Give the Database Name & Collection name - [users].
+
+6. Open the VS code terminal: npm install express mongoose.
+
+7. Let's create index.js
+   
+8. Let's Code - index.js 
+   	// import the package or require package of Express & Mongoose  
+        const express = require('express');
+   	
+	const mongoose = require('mongoose');			
+	
+	// express object
+	const app = express(); 
+	
+	// middleware application 
+	app.use(express.json())
+	
+	// mongodb connection 
+	mongoose.connect("mongodb://localhost:27017/database_name")
+	.then(()=>{console.log("Mongo DB Connected"}))
+	.catch((err)=>{
+		console.log(err);
+	})
+	app.listen(3000);
+
+9. Create Schema for user 
+	const userSchema = new mongoose.Schema({
+   	name:{type:String,required:true},
+  	username:{type:String,required:true},
+   	password:{type:String,required:true}
+},
+{
+   	timestamps:true
+});		
+
+10. Create the model for user 	
+    	const userModel = new mongoose.model("users",userSchema); 
+   	"users" - it is collection name.  
+    	"userSchema" - it is schema name.  				
+
+
+11. Create the end-point for creating new user 
+
+   	 app.post("/register",(req,res)=>{
+    
+  	 // here you will get data of users which stores inside object named as 'user'  
+	 let user = req.body;   	 
+
+	 // to store this data which is coming from 'user', inside database we create model object & we need to
+	    pass the data that we recieved i.e 'user'  
+ 	 let userOBJ = new userModel(user);
+
+	 userOBJ.save()		
+    	 // if it is successful then , send message  	
+	.then(()=>{     	
+         res.send({message:"User is Registered"})
+         })
+
+	// if it is failed give error message 
+        .catch((err)=>{
+        	console.log(err); // you need to log the error to see what is the problem  
+        	res.send({message:"Problem in creating the user"})  // for the user send the response 
+      	 })
+
+
+********************** Encrytpion of Password **************************
+
+ Encryption of password using a library ->[(bcryptjs)] & it uses blowfish algorithm.
+
+ <<<<< Steps for encryption of password using bcryptjs >>>>>
+
+1. Install libraray :->> npm install bcryptjs.  
+
+2. first we generate salt random text.  
+
+3. after generating salt we will mix it with the real text. 
+
+4. Finally, after mixing we will encrypt it, so that if someone decrpyt it he will get salt & he still unable to decrypt it. 
+
+
+// Code for encrypting password 
+
+app.post("/register",(req,res)=>{
+    
+    let user = req.body;
+
+    //  it will convert normal textual password into encrypted one  
+    //  (genSalt) this function tell's us how many round you want to do & it will generate random salt i.e mixture  
+
+    bcryptjs.genSalt(10,(err,salt)=>{
+
+        
+        if(err===null){
+            // pass old password , salt it will give newpassword
+            bcryptjs.hash(user.password,salt,(err,newpassword)=>{
+           
+                // updated it with old password
+                user.password = newpassword;
+
+                // save the new encrypted password in database 
+                
+                let userOBJ = new userModel(user);
+                userOBJ.save()
+                .then(()=>{
+                    res.send({message:"User is Registered"})
+                })
+                .catch((err)=>{
+                    console.log(err);
+                    res.send({message:"Problem in creating the user"}) 
+                })
+       
+            })
+        }
+    })
+
+})
+   
+
+// Login 
+
+// for login functionality 
+// 1. First check if username is correct 
+// 2. Whatever username & password pass in body it will store in userCred  
+
+app.post("/login",(req,res)=>{
+
+    // Whatever username & password pass in body it will store in userCred 
+    let userCred = req.body;
+
+    // we try to find person with that username 
+    userModel.findOne({username:userCred.username})
+    .then((user)=>{
+        // if we found username, if block will executed 
+        if(user!=null){
+
+            // we are checking the previous encrypted password with new encrypted password using bcryptjs.compare() method  
+            bcryptjs.compare(userCred.password,user.password,(err,status)=>{
+                if(status === true){
+                    res.send({message:"Welcome User"});
+                }
+                else{
+                    res.send({message:"Password don't match"})
+                }    
+            })
+
+        }  
+        // if we don't found username else block executed 
+        else{
+            res.send({message:"User is not found"});
+        }     
+    })
+    .catch((err)=>{
+        console.log(err);
+        res.send({message:"Some problem"});
+    })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+**** Authorization **** 
+Authorization : Technical term 
+what you are authorized to use,how much permission user's have given to use & it depends on his role.
+for eg : Admin have permission to monitor user's activity. 
+
+
+1. Authorization is based on token's & for that we need to JWT- JSON Web token (library).
+
+2. JWT - Json web token is the most common way to generate & verifying token's
+       - JWT token's can be send on the web & used on the web. 	
+
+   Oauth - It is also one another method to generate & authorize token's. 
+
+3. To Install JWT library -> npm install jsonwebtoken. 
+
+4. Session concept is no more used in today's Web development , so we have to used token's insted of session. 
+	if user is login or logout will identify based on token's & not based on session. 
